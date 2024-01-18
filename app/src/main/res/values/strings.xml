@@ -7,6 +7,7 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="copy_right">All rights reserved. 2026 Berry Game.©</string>
+    <string name="browser_tip">如遇功能异常，请试试跳转到手机浏览器操作！</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

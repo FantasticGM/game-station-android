@@ -49,6 +49,7 @@ class WebActivity: AppCompatActivity() {
             canGoDesktop = false
             Log.d("Mortal[44]",webUrl )
             binding.llTopBar.visibility = View.VISIBLE
+            binding.llTip.visibility = View.VISIBLE
         }
         binding.ivBack.setOnClickListener {v ->
             if (webView!!.canGoBack()) {
@@ -56,6 +57,13 @@ class WebActivity: AppCompatActivity() {
             } else {
                 finish()
             }
+        }
+        binding.ivOpenBrowser.setOnClickListener{v ->
+            val intent = Intent()
+            intent.setAction("android.intent.action.VIEW")
+            val content_url = Uri.parse(webView?.url)
+            intent.setData(content_url)
+            startActivity(intent)
         }
         //webView = findViewById(R.id.webView)
         webView = binding.webView
