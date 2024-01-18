@@ -1,6 +1,7 @@
 package com.skyx.berrygame
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -9,10 +10,13 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.skyx.berrygame.bean.JsMethod
 import com.skyx.berrygame.databinding.ActivityWebBinding
@@ -22,26 +26,37 @@ import org.json.JSONObject
 class WebActivity: AppCompatActivity() {
 
     private lateinit var binding: ActivityWebBinding
+    private var canGoDesktop = true// 是否允許返回到手機桌面
+    private var exitTime: Long = 0
 
     private var webView: WebView? = null
-//        var WEB_URL = "https://www.berrygame.xyz"
-    var WEB_URL = "http://192.168.1.216:8080/"
+        var WEB_URL = "https://www.berrygame.xyz"
+//    var WEB_URL = "http://172.0.8.11:8080/"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityWebBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        
         initWebView()
     }
 
-    fun initWebView() {
+    private fun initWebView() {
         val intent = intent
         val webUrl = intent.getStringExtra("webUrl").toString()
         if (!TextUtils.isEmpty(webUrl)) {
-            Log.d("Mortal[43]",webUrl )
             WEB_URL = webUrl
+            canGoDesktop = false
+            Log.d("Mortal[44]",webUrl )
+            binding.llTopBar.visibility = View.VISIBLE
+        }
+        binding.ivBack.setOnClickListener {v ->
+            if (webView!!.canGoBack()) {
+                webView!!.goBack()//返回上一个页面
+            } else {
+                finish()
+            }
         }
         //webView = findViewById(R.id.webView)
         webView = binding.webView
@@ -51,11 +66,31 @@ class WebActivity: AppCompatActivity() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 return false
             }
+
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                binding.progressBar.visibility = View.VISIBLE
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                binding.progressBar.visibility = View.GONE
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                super.onReceivedError(view, request, error)
+                binding.progressBar.visibility = View.GONE
+            }
         }
 
         val webChromeClient = object: WebChromeClient() {
             override fun onReceivedTitle(view: WebView?, title: String?) {
                 super.onReceivedTitle(view, title)
+                val showTitle: String = title.toString()
+                binding.tvTitle.text = showTitle
             }
         }
 
@@ -124,10 +159,22 @@ class WebActivity: AppCompatActivity() {
 
     //设置返回键的监听
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode==KeyEvent.KEYCODE_BACK){
-            if (webView!!.canGoBack()){
-                webView!!.goBack()  //返回上一个页面
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (webView!!.canGoBack()) {
+                webView!!.goBack()//返回上一个页面
                 return true
+            } else {
+                if (canGoDesktop) {
+                    if ((System.currentTimeMillis() - exitTime) > 2000) {
+                        Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show()
+                        exitTime = System.currentTimeMillis()
+                    } else {
+                        finish()
+                        System.exit(0)
+                    }
+                } else {
+                    finish()
+                }
             }
         }
         return false
