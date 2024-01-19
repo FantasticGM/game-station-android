@@ -1,7 +1,5 @@
 package com.skyx.berrygame
 
-import android.R.id
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -22,7 +20,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
 import com.skyx.berrygame.bean.JsMethod
+import com.skyx.berrygame.bean.VersionInfo
 import com.skyx.berrygame.databinding.ActivityWebBinding
 import com.skyx.berrygame.utils.LanguageHelper
 import org.json.JSONObject
@@ -37,8 +37,8 @@ class WebActivity: AppCompatActivity() {
     private var mLanguage = ""
 
     private var webView: WebView? = null
-        var WEB_URL = "https://www.berrygame.xyz"
-//    var WEB_URL = "http://172.0.8.11:8080/"
+    var WEB_URL = "https://www.berrygame.xyz"
+//    var WEB_URL = "http://192.168.1.216:8080/"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,29 +121,57 @@ class WebActivity: AppCompatActivity() {
             val jsonObject:JSONObject = JSONObject(params)
             val action:String = jsonObject.getString("action")
             val type:String = jsonObject.getString("type")
-            if ("jumpWebView".equals(action)) {
-                val jumpUrl:String = jsonObject.getString("url")
-                if ("outer".equals(type)) {
-                    //Log.d("Mortal[outer]", "外部浏览器")
+            when(action) {
+                "jumpWebView" -> {
+                    val jumpUrl:String = jsonObject.getString("url")
+                    if ("outer" == type) {
+                        //Log.d("Mortal[outer]", "外部浏览器")
+                        val intent = Intent()
+                        intent.setAction("android.intent.action.VIEW")
+                        val content_url = Uri.parse(jumpUrl)
+                        intent.setData(content_url)
+                        startActivity(intent)
+                    } else if ("self" == type) {
+                        //Log.d("Mortal[self]", "新开页面")
+                        val intent = Intent(this, WebActivity::class.java)
+                        intent.putExtra("webUrl", jumpUrl)
+                        if (!TextUtils.isEmpty(mLanguage)) {
+                            intent.putExtra("language", mLanguage)
+                        }
+                        startActivity(intent)
+                    }
+                }
+                "changeLanguage" -> {
+                    if (!TextUtils.isEmpty(type)) {
+                        mLanguage = type
+                        Log.d("BerryGame[js切换语言]", mLanguage)
+                        LanguageHelper.getAttachBaseContext(this, mLanguage)
+                    }
+                }
+                "appDownload" -> {
+                    val jumpUrl:String = jsonObject.getString("url")
+                    Log.d("BerryGame[downloadUrl]", jumpUrl)
                     val intent = Intent()
                     intent.setAction("android.intent.action.VIEW")
                     val content_url = Uri.parse(jumpUrl)
                     intent.setData(content_url)
                     startActivity(intent)
-                } else if ("self".equals(type)) {
-                    //Log.d("Mortal[self]", "新开页面")
-                    val intent = Intent(this, WebActivity::class.java)
-                    intent.putExtra("webUrl", jumpUrl)
-                    if (!TextUtils.isEmpty(mLanguage)) {
-                        intent.putExtra("language", mLanguage)
-                    }
-                    startActivity(intent)
                 }
-            } else if ("changeLanguage".equals(action)) {
-                if (!TextUtils.isEmpty(type)) {
-                    mLanguage = type
-                    Log.d("BerryGame[js切换语言]", mLanguage)
-                    LanguageHelper.getAttachBaseContext(this, mLanguage)
+                "getAppVersion" -> {
+                    val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                    val versionName = packageInfo.versionName
+                    val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        packageInfo.longVersionCode
+                    } else {
+                        packageInfo.versionCode
+                    }
+                    val versionInfo: VersionInfo = VersionInfo(versionName, versionCode)
+                    val gson = Gson()
+                    val versionInfoStr = gson.toJson(versionInfo)
+                    webView?.post { run {
+                        // 注意回调参数已经是字符串了，不要再套一层字符串，不然js中JSON要parse两次
+                        webView?.loadUrl("javascript:currentAppVersionCallBack($versionInfoStr)")
+                    } }
                 }
             }
         }, "JSBerryGame")
