@@ -18,7 +18,7 @@ public class JsMethod {
     @JavascriptInterface
     public void postMessage(String params) {
         //解析数据再回调--直接回调
-        Log.d("Mortal[21]", "postMessage: " + params);
+        Log.d("BerryGame[postMessage]", params);
         mJsMethodInterface.postMessageCallBack(params);
     }
 }

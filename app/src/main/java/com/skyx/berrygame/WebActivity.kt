@@ -19,7 +19,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.skyx.berrygame.bean.JsMethod
 import com.skyx.berrygame.databinding.ActivityWebBinding
+import com.skyx.berrygame.utils.LanguageHelper
 import org.json.JSONObject
+import java.util.Locale
 
 
 class WebActivity: AppCompatActivity() {
@@ -27,6 +29,7 @@ class WebActivity: AppCompatActivity() {
     private lateinit var binding: ActivityWebBinding
     private var canGoDesktop = true// 是否允許返回到手機桌面
     private var exitTime: Long = 0
+    private var mLanguage = ""
 
     private var webView: WebView? = null
         var WEB_URL = "https://www.berrygame.xyz"
@@ -44,12 +47,15 @@ class WebActivity: AppCompatActivity() {
     private fun initWebView() {
         val intent = intent
         val webUrl = intent.getStringExtra("webUrl").toString()
+        val language = intent.getStringExtra("language").toString()
         if (!TextUtils.isEmpty(webUrl)) {
             WEB_URL = webUrl
             canGoDesktop = false
-            Log.d("Mortal[44]",webUrl )
             binding.llTopBar.visibility = View.VISIBLE
             binding.llTip.visibility = View.VISIBLE
+        }
+        if (!TextUtils.isEmpty(language)) {
+            LanguageHelper.getAttachBaseContext(this, language)
         }
         binding.ivBack.setOnClickListener {v ->
             if (webView!!.canGoBack()) {
@@ -123,7 +129,16 @@ class WebActivity: AppCompatActivity() {
                     //Log.d("Mortal[self]", "新开页面")
                     val intent = Intent(this, WebActivity::class.java)
                     intent.putExtra("webUrl", jumpUrl)
+                    if (!TextUtils.isEmpty(mLanguage)) {
+                        intent.putExtra("language", mLanguage)
+                    }
                     startActivity(intent)
+                }
+            } else if ("changeLanguage".equals(action)) {
+                if (!TextUtils.isEmpty(type)) {
+                    mLanguage = type
+                    Log.d("BerryGame[js切换语言]", mLanguage)
+                    LanguageHelper.getAttachBaseContext(this, mLanguage)
                 }
             }
         }, "JSBerryGame")
@@ -168,7 +183,7 @@ class WebActivity: AppCompatActivity() {
             } else {
                 if (canGoDesktop) {
                     if ((System.currentTimeMillis() - exitTime) > 2000) {
-                        Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(getApplicationContext(), getString(R.string.exit_app), Toast.LENGTH_SHORT).show()
                         exitTime = System.currentTimeMillis()
                     } else {
                         val startMain = Intent(Intent.ACTION_MAIN);

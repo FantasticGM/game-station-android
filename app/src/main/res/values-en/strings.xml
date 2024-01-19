@@ -7,8 +7,8 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="copy_right">All rights reserved. 2026 Berry Game.©</string>
-    <string name="browser_tip">温馨提示：在浏览器打开</string>
-    <string name="exit_app">再按一次退出程序</string>
+    <string name="browser_tip">Tips: Open in browser</string>
+    <string name="exit_app">Press again to exit the program</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
