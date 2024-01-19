@@ -116,8 +116,8 @@ class WebActivity: AppCompatActivity() {
             val jsonObject:JSONObject = JSONObject(params)
             val action:String = jsonObject.getString("action")
             val type:String = jsonObject.getString("type")
-            val jumpUrl:String = jsonObject.getString("url")
             if ("jumpWebView".equals(action)) {
+                val jumpUrl:String = jsonObject.getString("url")
                 if ("outer".equals(type)) {
                     //Log.d("Mortal[outer]", "外部浏览器")
                     val intent = Intent()
