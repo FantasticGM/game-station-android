@@ -201,7 +201,9 @@ class WebActivity: AppCompatActivity() {
 //        webSettings.loadWithOverviewMode = true  // 缩放至屏幕的大小
         webSettings.allowFileAccess = true // 设置可以访问文件
         webSettings.setGeolocationEnabled(true) // 是否使用地理位置
-        webView?.setInitialScale(100)//最小缩放等级
+        if (!TextUtils.isEmpty(webUrl)) {
+            webView?.setInitialScale(100)//最小缩放等级
+        }
         webView?.fitsSystemWindows = true
         webView?.setLayerType(View.LAYER_TYPE_HARDWARE,null)
         webView?.loadUrl(WEB_URL)
