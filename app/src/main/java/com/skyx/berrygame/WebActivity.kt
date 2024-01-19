@@ -1,11 +1,16 @@
 package com.skyx.berrygame
 
+import android.R.id
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -183,7 +188,29 @@ class WebActivity: AppCompatActivity() {
             } else {
                 if (canGoDesktop) {
                     if ((System.currentTimeMillis() - exitTime) > 2000) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.exit_app), Toast.LENGTH_SHORT).show()
+                        var exitMsg = "Press again to exit the program"
+                        try {
+                            val conf: Configuration = resources.configuration
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                                conf.setLocale(Locale(mLanguage))
+                            } else {
+                                conf.locale = Locale(mLanguage)
+                            }
+                            val metrics = DisplayMetrics()
+                            windowManager.defaultDisplay.getMetrics(metrics)
+                            val resources = Resources(assets, metrics, conf)
+                            exitMsg = resources.getString(R.string.exit_app)
+                        } catch (e: Exception) {
+                            Log.d("BerryGame[exit]", e.toString())
+                            if ("zh".equals(mLanguage)) {
+                                exitMsg = "再按一次退出程序"
+                            } else if ("en".equals(mLanguage)) {
+                                exitMsg = "Press again to exit the program"
+                            } else if ("pt".equals(mLanguage)) {
+                                exitMsg = "Pressione novamente para sair do programa"
+                            }
+                        }
+                        Toast.makeText(this, exitMsg, Toast.LENGTH_SHORT).show()
                         exitTime = System.currentTimeMillis()
                     } else {
                         val startMain = Intent(Intent.ACTION_MAIN);
